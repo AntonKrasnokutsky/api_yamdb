@@ -21,6 +21,7 @@ class GenreViewSet(viewsets.ReadOnlyModelViewSet):
 
 
 class CategoryViewSet(viewsets.ModelViewSet):
+    queryset = Genre.objects.all()
     serializer_class = CategorySerializer
     #permission_classes = None
 
