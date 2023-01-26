@@ -22,12 +22,6 @@ class SignUpSerializer(serializers.ModelSerializer):
         ]
     )
 
-    def validate_username(self, value):
-        if value.lower() == 'me':
-            raise serializers.ValidationError(
-                'Никнейм "me" недопустим'
-            )
-
     class Meta:
         model = User
         fields = ('email', 'username')
@@ -42,14 +36,6 @@ class SignUpSerializer(serializers.ModelSerializer):
 class TokenSerializer(serializers.ModelSerializer):
     username = serializers.CharField(required=True, validators=[UniqueValidator(queryset=User.objects.all())])
     confirmation_code = serializers.CharField(required=True)
-
-    def validate(self, data):
-        user = get_object_or_404(User, username=data['username'])
-        if not default_token_generator.check_token(user, data['confirmation_code']):
-            raise serializers.ValidationError(
-                'Некорректный код'
-            )
-        return data
 
     class Meta:
         model = User
