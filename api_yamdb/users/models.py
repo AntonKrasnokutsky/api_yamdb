@@ -1,5 +1,7 @@
 from django.db import models
 from django.contrib.auth.models import AbstractUser
+from django.core import validators
+from django.contrib.auth.validators import UnicodeUsernameValidator
 
 
 CHOICES = (
@@ -9,17 +11,27 @@ CHOICES = (
 )
 
 
+class UsernameValidator(UnicodeUsernameValidator):
+    regex = r'^[\w.@+\- ]+$'
+
+
 class User(AbstractUser):
 
     username = models.CharField(
         unique=True,
         max_length=150,
-        null=True,
+        null=False,
+        blank=False,
+        validators=[validators.MaxLengthValidator(limit_value=150), UsernameValidator()]
     )
     email = models.EmailField(
         unique=True,
         max_length=254,
         blank=False,
+        validators=[
+            validators.EmailValidator(message="Invalid Email"),
+            validators.MaxLengthValidator(limit_value=254),
+        ]
     )
     first_name = models.CharField(
         max_length=150,
