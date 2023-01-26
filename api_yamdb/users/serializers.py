@@ -1,10 +1,9 @@
-from django.contrib.auth.tokens import default_token_generator
-from django.shortcuts import get_object_or_404
 from rest_framework import serializers
 from django.core import validators
 from rest_framework.validators import UniqueTogetherValidator, UniqueValidator
 
 from .models import User, UsernameValidator
+
 
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
