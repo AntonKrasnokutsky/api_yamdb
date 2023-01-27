@@ -22,7 +22,7 @@ def user_signup(request):
         user = serializer.instance
         confirmation_code = default_token_generator.make_token(user)
         send_mail(
-            'Код подтверждения',
+            'Your confirmation code here:',
             f'{confirmation_code}',
             'from@example.com',
             [serializer.validated_data.get('email')],
@@ -46,15 +46,20 @@ def user_get_token(request):
 
 class UserViewSet(ModelViewSet):
     queryset = User.objects.all()
-    filter_backends = (SearchFilter, )
-    search_fields = ('username', )
+    filter_backends = [SearchFilter, ]
+    search_fields = ['username', ]
     lookup_field = 'username'
-    permission_classes = (IsAdmin, )
+    permission_classes = [IsAdmin, ]
     serializer_class = UserSerializer
+
+    def update(self, request, *args, **kwargs):
+        if request.method == 'PUT':
+            return Response(status=status.HTTP_405_METHOD_NOT_ALLOWED)
+        return super().update(request, *args, **kwargs)
 
     @action(
         methods=['GET', 'PATCH'],
-        permission_classes=[IsAuthenticated],
+        permission_classes=[IsAuthenticated, ],
         url_path='me',
         detail=False,
     )

@@ -1,36 +1,32 @@
 from django.db import models
 from django.contrib.auth.models import AbstractUser
 from django.core import validators
-from django.contrib.auth.validators import UnicodeUsernameValidator
 
 
 CHOICES = (
-    ('admin', 'Админ'),
-    ('moderator', 'Модератор'),
-    ('user', 'Пользователь'),
+    ('admin', 'Admin'),
+    ('moderator', 'Moderator'),
+    ('user', 'User'),
 )
 
 
-class UsernameValidator(UnicodeUsernameValidator):
-    regex = r'^[\w.@+\- ]+$'
-
-
 class User(AbstractUser):
-
     username = models.CharField(
         unique=True,
         max_length=150,
         null=False,
         blank=False,
-        validators=[validators.MaxLengthValidator(limit_value=150), UsernameValidator()]
+        validators=[
+            validators.MaxLengthValidator(limit_value=150),
+            validators.RegexValidator(regex=r'^[\w.@+\- ]+$')
+        ],
     )
     email = models.EmailField(
         unique=True,
         max_length=254,
         blank=False,
         validators=[
-            validators.EmailValidator(message="Invalid Email"),
-            validators.MaxLengthValidator(limit_value=254),
+            validators.EmailValidator(message='Invalid Email'),
         ]
     )
     first_name = models.CharField(
@@ -55,6 +51,6 @@ class User(AbstractUser):
         constraints = [
             models.UniqueConstraint(
                 fields=('email', 'username'),
-                name="unique_user"
+                name='unique_user'
             )
         ]
