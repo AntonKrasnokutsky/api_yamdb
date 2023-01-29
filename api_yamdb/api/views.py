@@ -27,6 +27,7 @@ class CategoryViewSet(viewsets.ModelViewSet):
     #permission_classes = None
 
 
+
 class ReviewViewSet(viewsets.ModelViewSet):
     serializer_class = ReviewSerializer
     # permission_classes = (автор, модератор, админ, суперадмин)
