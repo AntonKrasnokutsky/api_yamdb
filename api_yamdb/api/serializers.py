@@ -31,6 +31,17 @@ class CategorySerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 
+
+class CommentSerializer(serializers.ModelSerializer):
+    author = serializers.StringRelatedField(read_only=True)
+
+    class Meta:
+        fields = ('id', 'text', 'author', 'pub_date')
+        model = Comment
+        read_only_fields = ('author', )
+
+
+
 class ReviewSerializer(serializers.ModelSerializer):
     author = serializers.StringRelatedField(read_only=True)
     # comments = CommentSerializer(read_only=True, many=True, required=False)

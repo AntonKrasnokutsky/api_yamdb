@@ -65,3 +65,24 @@ class Review(models.Model):
         ordering = ['title',]
         verbose_name = 'Обзор'
         verbose_name_plural = 'Обзоры'
+
+
+
+class Comment(models.Model):
+    text = models.TextField(verbose_name='Коментарий')
+    author = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        related_name='comment',
+        verbose_name='Автор отзыва',
+    )
+    review = models.ForeignKey(
+        'Review',
+        on_delete=models.CASCADE,
+        related_name='comment',
+        verbose_name='Обзор',
+    )
+    pub_date = models.DateTimeField(
+        verbose_name='Дата публикации',
+        auto_now_add=True,
+    )
