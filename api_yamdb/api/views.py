@@ -22,10 +22,9 @@ class GenreViewSet(viewsets.ReadOnlyModelViewSet):
 
 
 class CategoryViewSet(viewsets.ModelViewSet):
+    queryset = Category.objects.all()
     serializer_class = CategorySerializer
     #permission_classes = None
-
-<<<<<<< HEAD
 
 
 class ReviewViewSet(viewsets.ModelViewSet):
@@ -46,5 +45,4 @@ class ReviewViewSet(viewsets.ModelViewSet):
             return super().permission_denied(self.request)
         title = Title.objects.get(pk=self.kwargs.get("title_id"))
         serializer.save(author=self.request.user, title=title)
-=======
->>>>>>> d92db10 (endpoints updated)
+
