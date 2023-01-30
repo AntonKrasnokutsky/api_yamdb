@@ -54,7 +54,10 @@ def user_get_token(request):
     ):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
     refresh = RefreshToken.for_user(user)
-    return Response({'refresh': str(refresh)}, status=status.HTTP_200_OK)
+    return Response(
+        {'refresh': str(refresh), 'access': str(refresh.access_token)},
+        status=status.HTTP_200_OK
+    )
 
 
 class UserViewSet(ModelViewSet):
