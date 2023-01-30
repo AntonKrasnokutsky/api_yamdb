@@ -67,7 +67,6 @@ class Review(models.Model):
         verbose_name_plural = 'Обзоры'
 
 
-
 class Comment(models.Model):
     text = models.TextField(verbose_name='Коментарий')
     author = models.ForeignKey(
