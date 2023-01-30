@@ -1,11 +1,12 @@
 from django.contrib.auth import get_user_model
 from django.db import models
+from django.core import validators
 
 User = get_user_model()
 
 
 class Category(models.Model):
-    name = models.CharField(max_length=200)
+    name = models.CharField(max_length=256)
     slug = models.SlugField(max_length=50, unique=True)
 
     def __str__(self):
@@ -31,7 +32,12 @@ class Title(models.Model):
 
 
 class Genre(models.Model):
-    name = models.CharField(max_length=200)
+    name = models.CharField(
+        max_length=256,
+        validators=[
+            validators.MaxLengthValidator(limit_value=256),
+        ],
+    )
     slug = models.SlugField(max_length=50, unique=True)
     titles = models.ManyToManyField(
         Title,

@@ -1,6 +1,8 @@
 from rest_framework import serializers
+from django.core import validators
 
 from datetime import datetime as dt
+from re import match
 from titles.models import (
     Title, Genre, Category, Review, Comment
 )
@@ -20,13 +22,32 @@ class TitleSerializer(serializers.ModelSerializer):
 
 
 class GenreSerializer(serializers.ModelSerializer):
+    name = serializers.CharField(
+        required=True,
+        validators=[
+            validators.MaxLengthValidator(limit_value=256),
+        ]
+    )
 
     class Meta:
         model = Genre
         fields = '__all__'
 
+    def validate_name(self, value):
+        if len(value) > 256:
+            raise serializers.ValidationError(
+                'Год выпуска не может быть больше текущего!'
+            )
+
 
 class CategorySerializer(serializers.ModelSerializer):
+    slug = serializers.CharField(
+        required=True,
+        validators=[
+            validators.MaxLengthValidator(limit_value=50),
+            validators.RegexValidator(regex=r'^[-a-zA-Z0-9_]+$')
+        ]
+    )
 
     class Meta:
         model = Category
