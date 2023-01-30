@@ -45,4 +45,3 @@ class ReviewViewSet(viewsets.ModelViewSet):
             return super().permission_denied(self.request)
         title = Title.objects.get(pk=self.kwargs.get("title_id"))
         serializer.save(author=self.request.user, title=title)
-

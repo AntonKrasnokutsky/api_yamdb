@@ -4,8 +4,7 @@ from .views import (
     ReviewViewSet, TittleViewSet, GenreViewSet, CategoryViewSet
 )
 
-router = routers.DefaultRouter(router=routers.DefaultRouter())
-
+router = routers.DefaultRouter()
 router.register(r'titles/(?P<title_id>\d+)/reviews',
                 ReviewViewSet,
                 basename='reviews'
@@ -16,5 +15,5 @@ router.register(r'categories', CategoryViewSet, basename='Category')
 
 
 urlpatterns = [
-    path('', include(router.urls)),
+    path('api/v1/', include(router.urls)),
 ]

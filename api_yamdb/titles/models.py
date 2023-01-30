@@ -12,24 +12,13 @@ class Category(models.Model):
         return self.name
 
 
-class Genre(models.Model):
-    name = models.CharField(max_length=200)
-    slug = models.SlugField(max_length=50, unique=True)
-
-    def __str__(self):
-        return self.name
-
-
 class Title(models.Model):
     name = models.CharField(max_length=256)
     description = models.TextField(blank=True)
     year = models.IntegerField()
     category = models.ForeignKey(
-        Category, on_delete=models.CASCADE, related_name='titles')
-    genre = models.ForeignKey(
-        Genre,
-        on_delete=models.CASCADE,
-        related_name='titles'
+        Category, on_delete=models.SET_NULL,
+        null=True, related_name='titles'
     )
 
     class Meta:
@@ -41,9 +30,44 @@ class Title(models.Model):
         return self.name
 
 
+class Genre(models.Model):
+    name = models.CharField(max_length=200)
+    slug = models.SlugField(max_length=50, unique=True)
+    titles = models.ManyToManyField(
+        Title,
+        through='GenreTitle',
+        related_name='genre',
+        verbose_name='жанр произведения',
+    )
+
+    def __str__(self):
+        return self.name
+
+
+class GenreTitle(models.Model):
+    genre = models.ForeignKey(
+        Genre,
+        on_delete=models.CASCADE
+    )
+    title = models.ForeignKey(
+        Title,
+        on_delete=models.CASCADE,
+    )
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(
+                fields=['title', 'genre'], name='GenreTitle'
+            )
+        ]
+
+    def __str__(self):
+        return f'Это произведение {self.title} жанра {self.genre}'
+
+
 class Review(models.Model):
     title = models.ForeignKey(
-        'Title',
+        Title,
         on_delete=models.CASCADE,
         related_name='review',
         verbose_name='Произведение',
@@ -61,8 +85,8 @@ class Review(models.Model):
         verbose_name='Автор отзыва',
     )
 
-    class Meta():
-        ordering = ['title',]
+    class Meta:
+        ordering = ['title', ]
         verbose_name = 'Обзор'
         verbose_name_plural = 'Обзоры'
 
@@ -76,7 +100,7 @@ class Comment(models.Model):
         verbose_name='Автор отзыва',
     )
     review = models.ForeignKey(
-        'Review',
+        Review,
         on_delete=models.CASCADE,
         related_name='comment',
         verbose_name='Обзор',

@@ -1,7 +1,9 @@
 from rest_framework import serializers
 
 from datetime import datetime as dt
-from titles.models import Title, Genre, Category, Review
+from titles.models import (
+    Title, Genre, Category, Review, Comment
+)
 
 
 class TitleSerializer(serializers.ModelSerializer):
@@ -31,7 +33,6 @@ class CategorySerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 
-
 class CommentSerializer(serializers.ModelSerializer):
     author = serializers.StringRelatedField(read_only=True)
 
@@ -39,7 +40,6 @@ class CommentSerializer(serializers.ModelSerializer):
         fields = ('id', 'text', 'author', 'pub_date')
         model = Comment
         read_only_fields = ('author', )
-
 
 
 class ReviewSerializer(serializers.ModelSerializer):
