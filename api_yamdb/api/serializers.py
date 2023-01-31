@@ -22,12 +22,6 @@ class TitleSerializer(serializers.ModelSerializer):
 
 
 class GenreSerializer(serializers.ModelSerializer):
-    name = serializers.CharField(
-        required=True,
-        validators=[
-            validators.MaxLengthValidator(limit_value=256),
-        ]
-    )
 
     class Meta:
         model = Genre
@@ -36,22 +30,33 @@ class GenreSerializer(serializers.ModelSerializer):
     def validate_name(self, value):
         if len(value) > 256:
             raise serializers.ValidationError(
-                'Год выпуска не может быть больше текущего!'
+                'The name must not be longer than 256 characters'
+            )
+
+    def validate_slug(self, value):
+        if match(value, r'^[-a-zA-Z0-9_]+$') is None:
+            raise serializers.ValidationError(
+                'Slug format error'
             )
 
 
 class CategorySerializer(serializers.ModelSerializer):
-    slug = serializers.CharField(
-        required=True,
-        validators=[
-            validators.MaxLengthValidator(limit_value=50),
-            validators.RegexValidator(regex=r'^[-a-zA-Z0-9_]+$')
-        ]
-    )
 
     class Meta:
         model = Category
         fields = '__all__'
+
+    def validate_name(self, value):
+        if len(value) > 256:
+            raise serializers.ValidationError(
+                'The name must not be longer than 256 characters'
+            )
+
+    def validate_slug(self, value):
+        if match(value, r'^[-a-zA-Z0-9_]+$') is None:
+            raise serializers.ValidationError(
+                'Slug format error'
+            )
 
 
 class CommentSerializer(serializers.ModelSerializer):

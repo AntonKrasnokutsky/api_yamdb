@@ -1,4 +1,8 @@
 from django.contrib.auth import get_user_model
+from django.core.validators import (
+    MaxLengthValidator,
+    RegexValidator
+)
 from django.db import models
 from django.core import validators
 
@@ -34,17 +38,15 @@ class Title(models.Model):
 class Genre(models.Model):
     name = models.CharField(
         max_length=256,
-        validators=[
-            validators.MaxLengthValidator(limit_value=256),
-        ],
+        validators=[MaxLengthValidator(256)]
     )
-    slug = models.SlugField(max_length=50, unique=True)
-    titles = models.ManyToManyField(
-        Title,
-        through='GenreTitle',
-        related_name='genre',
-        verbose_name='жанр произведения',
-    )
+    slug = models.SlugField(max_length=50,
+                            unique=True,
+                            validators=[RegexValidator(
+                                regex=r'^[-a-zA-Z0-9_]+$',
+                                message='Format error'
+                            )],
+                            )
 
     def __str__(self):
         return self.name
