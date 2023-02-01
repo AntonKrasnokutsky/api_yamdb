@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from django.core import validators
+from django.core.validators import RegexValidator
 
 from .models import User
 
@@ -7,45 +7,39 @@ from .models import User
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
-        fields = ('username', 'email', 'first_name',
-                  'last_name', 'bio', 'role',
-                  )
+        fields = (
+            'username', 'email', 'first_name',
+            'last_name', 'bio', 'role',
+        )
+
+    def validate_username(self, value):
+        if value == 'me':
+            raise serializers.ValidationError(f"Name '{value}' is forbidden")
+        return value
 
 
-class SignUpSerializer(serializers.ModelSerializer):
-    email = serializers.EmailField(
-        required=True,
-        validators=[validators.MaxLengthValidator(limit_value=254)]
-    )
+class SignUpSerializer(serializers.Serializer):
+    email = serializers.EmailField(max_length=254)
     username = serializers.CharField(
-        required=True,
-        validators=[
-            validators.MaxLengthValidator(limit_value=150),
-            validators.RegexValidator(regex=r'^[\w.@+\- ]+$')
-        ]
+        max_length=150,
+        validators=[RegexValidator(regex=r'^[\w.@+\- ]+$')],
     )
 
-    class Meta:
-        model = User
-        fields = ('email', 'username')
-
-    def validate(self, attrs):
-        if attrs.get('username') == 'me':
-            raise serializers.ValidationError(
-                'Sorry this nickname is forbidden'
-            )
-        if User.objects.filter(email=attrs.get('email')) == attrs and not \
-                User.objects.filter(username=attrs.get('username')).exist():
-            raise serializers.ValidationError(
-                'Sorry this email or username already exists.'
-            )
-        return attrs
+    def validate_username(self, value):
+        if value == 'me':
+            raise serializers.ValidationError(f"Name '{value}' is forbidden")
+        return value
 
 
-class TokenSerializer(serializers.ModelSerializer):
-    username = serializers.CharField(required=True)
-    confirmation_code = serializers.CharField(required=True)
+class TokenSerializer(serializers.Serializer):
+    username = serializers.CharField(
+        max_length=150,
+        validators=[RegexValidator(regex=r'^[\w.@+\- ]+$')],
+        required=True,
+    )
+    confirmation_code = serializers.CharField(max_length=None, required=True)
 
-    class Meta:
-        model = User
-        fields = ('username', 'confirmation_code', )
+    def validate_username(self, value):
+        if value == 'me':
+            raise serializers.ValidationError(f"Name '{value}' is forbidden")
+        return value

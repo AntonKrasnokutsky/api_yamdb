@@ -1,29 +1,36 @@
 from django.core.mail import send_mail
-from django.core.exceptions import ValidationError
 from django.contrib.auth.tokens import default_token_generator
+from django.db import IntegrityError
 from django.shortcuts import get_object_or_404
-from rest_framework import status
-from rest_framework.decorators import action, api_view
-from rest_framework.filters import SearchFilter
-from rest_framework.permissions import IsAuthenticated
+from rest_framework import filters, status, viewsets
+from rest_framework.decorators import action
+from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
-from rest_framework.viewsets import ModelViewSet
+from rest_framework.views import APIView
 from rest_framework_simplejwt.tokens import RefreshToken
 
 from .models import User
-from .permissions import IsAdmin
-from .serializers import SignUpSerializer, TokenSerializer, UserSerializer
+from .permissions import (
+    IsAdmin,
+)
+from .serializers import (
+    TokenSerializer,
+    SignUpSerializer,
+    UserSerializer,
+)
 
 
-@api_view(['POST'])
-def user_signup(request):
-    serializer = SignUpSerializer(data=request.data)
-    if serializer.is_valid(raise_exception=True):
+class SignUpView(APIView):
+    permission_classes = (AllowAny,)
+
+    def post(self, request):
+        serializer = SignUpSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
         try:
             user, create = User.objects.get_or_create(
                 **serializer.validated_data
             )
-        except ValidationError:
+        except IntegrityError:
             return Response(
                 'Sorry this email or username already exists.',
                 status=status.HTTP_400_BAD_REQUEST
@@ -37,36 +44,39 @@ def user_signup(request):
             fail_silently=False,
         )
         return Response(serializer.data, status=status.HTTP_200_OK)
-    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
-@api_view(['POST'])
-def user_get_token(request):
-    serializer = TokenSerializer(data=request.data)
-    serializer.is_valid(raise_exception=True)
-    user = get_object_or_404(
-        User,
-        username=serializer.validated_data['username']
-    )
-    if not default_token_generator.check_token(
-            user,
-            request.data['confirmation_code']
-    ):
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-    refresh = RefreshToken.for_user(user)
-    return Response(
-        {'refresh': str(refresh), 'access': str(refresh.access_token)},
-        status=status.HTTP_200_OK
-    )
+class GetTokenView(APIView):
+    permission_classes = (AllowAny,)
+
+    def post(self, request):
+        serializer = TokenSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        user = get_object_or_404(
+            User, username=serializer.validated_data.get('username')
+        )
+        if not default_token_generator.check_token(
+            user, request.data.get('confirmation_code')
+        ):
+            return Response(
+                'Token not valid',
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        refresh = RefreshToken.for_user(user)
+        return Response(
+            {'access': str(refresh.access_token)},
+            status=status.HTTP_200_OK,
+        )
 
 
-class UserViewSet(ModelViewSet):
+class UserViewSet(viewsets.ModelViewSet):
     queryset = User.objects.all()
-    filter_backends = [SearchFilter, ]
-    search_fields = ['username', ]
-    lookup_field = 'username'
     permission_classes = [IsAdmin, ]
     serializer_class = UserSerializer
+    filter_backends = [filters.SearchFilter, ]
+    search_fields = ['username', ]
+    lookup_field = 'username'
 
     def update(self, request, *args, **kwargs):
         if request.method == 'PUT':
@@ -74,9 +84,9 @@ class UserViewSet(ModelViewSet):
         return super().update(request, *args, **kwargs)
 
     @action(
-        methods=['GET', 'PATCH'],
-        permission_classes=[IsAuthenticated, ],
+        methods=['get', 'patch'],
         url_path='me',
+        permission_classes=[IsAuthenticated, ],
         detail=False,
     )
     def user_profile(self, request):
