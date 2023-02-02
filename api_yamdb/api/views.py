@@ -1,6 +1,5 @@
 from rest_framework import viewsets
 from rest_framework.pagination import LimitOffsetPagination
-
 from titles.models import Title, Genre, Category, Review
 from .serializers import (
     TitleSerializer, GenreSerializer, CategorySerializer,
@@ -13,12 +12,13 @@ class TittleViewSet(viewsets.ModelViewSet):
     serializer_class = TitleSerializer
     # permission_classes = None
     pagination_class = LimitOffsetPagination
+    lookup_field = 'id'
 
 
-class GenreViewSet(viewsets.ReadOnlyModelViewSet):
+class GenreViewSet(viewsets.ModelViewSet):
     queryset = Genre.objects.all()
     serializer_class = GenreSerializer
-    # permission_classes = None
+    #permission_classes = None
 
 
 class CategoryViewSet(viewsets.ModelViewSet):

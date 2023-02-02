@@ -9,16 +9,27 @@ from titles.models import (
 
 
 class TitleSerializer(serializers.ModelSerializer):
+    genre = serializers.SlugRelatedField(
+        many=True,
+        slug_field='slug',
+        queryset=Genre.objects.all()
+    )
 
     class Meta:
         fields = '__all__'
         model = Title
+
+    def to_representation(self, instance):
+        rep = super(TitleSerializer, self).to_representation(instance)
+        rep['category'] = instance.category.slug
+        return rep
 
     def validate_year(self, value):
         if value > dt.now().year:
             raise serializers.ValidationError(
                 'Год выпуска не может быть больше текущего!'
             )
+        return value
 
 
 class GenreSerializer(serializers.ModelSerializer):
@@ -27,17 +38,16 @@ class GenreSerializer(serializers.ModelSerializer):
         model = Genre
         fields = '__all__'
 
-    def validate_name(self, value):
-        if len(value) > 256:
-            raise serializers.ValidationError(
-                'The name must not be longer than 256 characters'
-            )
-
     def validate_slug(self, value):
-        if match(value, r'^[-a-zA-Z0-9_]+$') is None:
+        if match(r'^[-a-zA-Z0-9_]+$', value) is None:
             raise serializers.ValidationError(
                 'Slug format error'
             )
+        if not value:
+            raise serializers.ValidationError(
+                'Slug can not be empty'
+            )
+        return value
 
 
 class CategorySerializer(serializers.ModelSerializer):
@@ -46,17 +56,16 @@ class CategorySerializer(serializers.ModelSerializer):
         model = Category
         fields = '__all__'
 
-    def validate_name(self, value):
-        if len(value) > 256:
-            raise serializers.ValidationError(
-                'The name must not be longer than 256 characters'
-            )
-
     def validate_slug(self, value):
-        if match(value, r'^[-a-zA-Z0-9_]+$') is None:
+        if match(r'^[-a-zA-Z0-9_]+$', value) is None:
             raise serializers.ValidationError(
                 'Slug format error'
             )
+        if not value:
+            raise serializers.ValidationError(
+                'Slug can not be empty'
+            )
+        return value
 
 
 class CommentSerializer(serializers.ModelSerializer):
