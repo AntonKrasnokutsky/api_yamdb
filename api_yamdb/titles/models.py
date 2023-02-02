@@ -5,11 +5,41 @@ User = get_user_model()
 
 
 class Category(models.Model):
-    name = models.CharField(max_length=200)
-    slug = models.SlugField(max_length=50, unique=True)
+    name = models.CharField(
+        max_length=256,
+        verbose_name='Категория'
+    )
+    slug = models.SlugField(
+        max_length=50,
+        unique=True,
+    )
 
     def __str__(self):
         return self.name
+
+    class Meta:
+        ordering = ['slug', ]
+        verbose_name = 'Категория'
+        verbose_name_plural = 'Категории'
+
+
+class Genre(models.Model):
+    name = models.CharField(
+        max_length=256,
+        verbose_name='Жанр',
+    )
+    slug = models.SlugField(
+        max_length=50,
+        unique=True,
+    )
+
+    def __str__(self):
+        return self.slug
+
+    class Meta:
+        ordering = ['slug', ]
+        verbose_name = 'Жанр'
+        verbose_name_plural = 'Жанры'
 
 
 class Title(models.Model):
@@ -20,6 +50,7 @@ class Title(models.Model):
         Category, on_delete=models.SET_NULL,
         null=True, related_name='titles'
     )
+    genre = models.ManyToManyField(Genre, through='GenreTitle')
 
     class Meta:
         ordering = ['year']
@@ -30,28 +61,16 @@ class Title(models.Model):
         return self.name
 
 
-class Genre(models.Model):
-    name = models.CharField(max_length=200)
-    slug = models.SlugField(max_length=50, unique=True)
-    titles = models.ManyToManyField(
-        Title,
-        through='GenreTitle',
-        related_name='genre',
-        verbose_name='жанр произведения',
-    )
-
-    def __str__(self):
-        return self.name
-
-
 class GenreTitle(models.Model):
     genre = models.ForeignKey(
         Genre,
-        on_delete=models.CASCADE
+        on_delete=models.CASCADE,
+        related_name='genre'
     )
     title = models.ForeignKey(
         Title,
         on_delete=models.CASCADE,
+        related_name='title'
     )
 
     class Meta:
