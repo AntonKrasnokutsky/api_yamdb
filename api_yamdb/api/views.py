@@ -24,6 +24,11 @@ class TittleViewSet(viewsets.ModelViewSet):
     filter_backends = (DjangoFilterBackend,)
     filterset_fields = ('category__slug', 'genre__slug', 'name', 'year')
 
+    def retrieve(self, request, *args, **kwargs):
+        instance = Title.objects.get(id=self.kwargs.get('id'))
+        serializer = self.get_serializer(instance)
+        return Response(serializer.data)
+
 
 class GenreViewSet(mixins.ListModelMixin, mixins.CreateModelMixin,
                    mixins.DestroyModelMixin, viewsets.GenericViewSet):

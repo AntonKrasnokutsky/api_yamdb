@@ -15,7 +15,7 @@ class Category(models.Model):
     )
 
     def __str__(self):
-        return self.name
+        return self.slug
 
     class Meta:
         ordering = ['slug', ]
@@ -47,8 +47,8 @@ class Title(models.Model):
     description = models.TextField(blank=True)
     year = models.IntegerField()
     category = models.ForeignKey(
-        Category, on_delete=models.SET_NULL,
-        null=True, related_name='titles'
+        Category, on_delete=models.CASCADE,
+        related_name='titles'
     )
     genre = models.ManyToManyField(Genre, through='GenreTitle')
 
