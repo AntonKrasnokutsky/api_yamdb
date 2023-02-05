@@ -1,4 +1,5 @@
-from rest_framework import viewsets
+from rest_framework import viewsets, filters, status
+from rest_framework.response import Response
 from rest_framework.pagination import LimitOffsetPagination
 from titles.models import Title, Genre, Category, Review
 from .serializers import (
@@ -23,6 +24,14 @@ class GenreViewSet(viewsets.ModelViewSet):
     queryset = Genre.objects.all()
     serializer_class = GenreSerializer
     permission_classes = [IsAdministratorOrReadOnly,]
+    pagination_class = LimitOffsetPagination
+    filter_backends = (filters.SearchFilter,)
+    search_fields = ('name',)
+
+    def destroy(self, request, *args, **kwargs):
+        instance = Genre.objects.get(slug=self.kwargs.get('slug'))
+        self.perform_destroy(instance)
+        return Response(status=status.HTTP_204_NO_CONTENT)
 
 
 class CategoryViewSet(viewsets.ModelViewSet):

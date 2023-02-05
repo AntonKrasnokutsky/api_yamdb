@@ -36,7 +36,7 @@ class GenreSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Genre
-        fields = '__all__'
+        fields = ('name', 'slug',)
 
     def validate_slug(self, value):
         if match(r'^[-a-zA-Z0-9_]+$', value) is None:
