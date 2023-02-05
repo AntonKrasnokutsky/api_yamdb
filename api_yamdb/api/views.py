@@ -5,12 +5,16 @@ from .serializers import (
     TitleSerializer, GenreSerializer, CategorySerializer,
     ReviewSerializer,
 )
+from .permissions import (
+    IsUserOrReadOnly, IsModeratorOrReadOnly,
+    IsAdministratorOrReadOnly, IsSuperUserOrReadOnly
+)
 
 
 class TittleViewSet(viewsets.ModelViewSet):
     queryset = Title.objects.all()
     serializer_class = TitleSerializer
-    # permission_classes = None
+    permission_classes = [IsAdministratorOrReadOnly,]
     pagination_class = LimitOffsetPagination
     lookup_field = 'id'
 
@@ -18,18 +22,21 @@ class TittleViewSet(viewsets.ModelViewSet):
 class GenreViewSet(viewsets.ModelViewSet):
     queryset = Genre.objects.all()
     serializer_class = GenreSerializer
-    #permission_classes = None
+    permission_classes = [IsAdministratorOrReadOnly,]
 
 
 class CategoryViewSet(viewsets.ModelViewSet):
     queryset = Category.objects.all()
     serializer_class = CategorySerializer
-    #permission_classes = None
+    permission_classes = [IsAdministratorOrReadOnly,]
 
 
 class ReviewViewSet(viewsets.ModelViewSet):
     serializer_class = ReviewSerializer
-    # permission_classes = (автор, модератор, админ, суперадмин)
+    permission_classes = (
+        IsUserOrReadOnly, IsModeratorOrReadOnly,
+        IsAdministratorOrReadOnly, IsSuperUserOrReadOnly
+    )
 
     def get_queryset(self):
         title_id = self.kwargs.get("title_id")
