@@ -191,6 +191,8 @@ class Test04TitleAPI:
             '`/api/v1/titles/{title_id}/` возвращает ответ со статусом 200.'
         )
         data = response.json()
+        print('1111111111')
+        print(data)
         assert isinstance(data.get('id'), int), (
             'Поле `id` отсутствует или содержит некорректное значение '
             'в ответе на GET-запрос неавторизованного пользователя к '
