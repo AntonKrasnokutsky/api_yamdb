@@ -91,7 +91,7 @@ class Review(models.Model):
         related_name='review',
         verbose_name='Произведение',
     )
-    text = models.TextField(verbose_name='Обзор')
+    text= models.TextField(verbose_name='Обзор')
     score = models.IntegerField(verbose_name='Оценка')
     pub_date = models.DateTimeField(
         verbose_name='Дата публикации',

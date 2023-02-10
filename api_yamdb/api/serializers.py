@@ -1,4 +1,5 @@
 from rest_framework import serializers, status
+from django.db.models import Avg
 
 from datetime import datetime as dt
 from re import match
@@ -53,10 +54,11 @@ class TitleSerializer(serializers.ModelSerializer):
         slug_field="slug",
         queryset=Category.objects.all()
     )
-
+    rating = serializers.SerializerMethodField()
 
     class Meta:
-        fields = ('id', 'name', 'year', 'description', 'genre', 'category',)
+        fields = ('id', 'name', 'year', 'description',
+                  'genre', 'category', 'rating')
         model = Title
 
     def validate_year(self, value):
@@ -66,6 +68,15 @@ class TitleSerializer(serializers.ModelSerializer):
             )
         return value
 
+    def get_rating(self, obj):
+        try:
+            rating = Review.objects.filter(title=obj).aggregate(
+                Avg('score')
+            )['score__avg']
+        except TypeError:
+            rating = None
+        return rating
+
     def create(self, validated_data):
         if ('category' not in validated_data
                 or 'genre' not in validated_data):
@@ -74,6 +85,7 @@ class TitleSerializer(serializers.ModelSerializer):
                 code=status.HTTP_400_BAD_REQUEST
             )
         else:
+            print(6666666666)
             genres = validated_data.pop('genre')
             title = Title.objects.create(**validated_data)
             for genre in genres:
@@ -91,6 +103,7 @@ class TitleSerializer(serializers.ModelSerializer):
         GenreTitle.objects.filter(title=instance).delete()
         for genre in genres:
             GenreTitle.objects.create(title=instance, genre=genre)
+        instance.save()
         return instance
 
 
