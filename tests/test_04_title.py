@@ -74,6 +74,8 @@ class Test04TitleAPI:
             '201.'
         )
         title_count += 1
+        print(22222222)
+        print(response.json())
         assert isinstance(response.json().get('id'), int), (
             f'Проверьте, при POST-запросе администратора к `{url}` '
             'в ответе возвращаются данные созданного объекта. Сейчас поле '

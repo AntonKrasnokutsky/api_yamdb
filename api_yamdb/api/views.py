@@ -4,7 +4,8 @@ from rest_framework import (
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.response import Response
 from rest_framework.pagination import LimitOffsetPagination
-from titles.models import Title, Genre, Category, Review
+from django.core.exceptions import ObjectDoesNotExist
+from titles.models import Title, Genre, Category, Review, GenreTitle
 from .serializers import (
     TitleSerializer, GenreSerializer, CategorySerializer,
     ReviewSerializer,
@@ -18,7 +19,7 @@ from .permissions import (
 class TittleViewSet(viewsets.ModelViewSet):
     queryset = Title.objects.all()
     serializer_class = TitleSerializer
-    permission_classes = [IsAdministratorOrReadOnly,]
+    permission_classes = [IsAdministratorOrReadOnly, ]
     pagination_class = LimitOffsetPagination
     lookup_field = 'id'
     filter_backends = (DjangoFilterBackend,)
@@ -29,12 +30,43 @@ class TittleViewSet(viewsets.ModelViewSet):
         serializer = self.get_serializer(instance)
         return Response(serializer.data)
 
+    def create(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        self.perform_create(serializer)
+        headers = self.get_success_headers(serializer.data)
+        return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
+
+    def perform_create(self, serializer):
+        data = dict(self.request.data)
+        if 'category' not in data or 'genre' not in data:
+            return Response(status=status.HTTP_400_BAD_REQUEST)
+        try:
+            serializer.save(
+                genre=Genre.objects.filter(slug__in=data['genre']),
+                category=Category.objects.get(slug=data['category'])
+            )
+        except ObjectDoesNotExist:
+            return Response(status=status.HTTP_404_NOT_FOUND)
+
+    def perform_update(self, serializer):
+        data = dict(self.request.data)
+        if 'category' not in data or 'genre' not in data:
+            return Response(status=status.HTTP_400_BAD_REQUEST)
+        try:
+            serializer.save(
+                genre=Genre.objects.filter(slug__in=data['genre']),
+                category=Category.objects.get(slug=data['category'])
+            )
+        except ObjectDoesNotExist:
+            return Response(status=status.HTTP_404_NOT_FOUND)
+
 
 class GenreViewSet(mixins.ListModelMixin, mixins.CreateModelMixin,
                    mixins.DestroyModelMixin, viewsets.GenericViewSet):
     queryset = Genre.objects.all()
     serializer_class = GenreSerializer
-    permission_classes = [IsAdministratorOrReadOnly,]
+    permission_classes = [IsAdministratorOrReadOnly, ]
     pagination_class = LimitOffsetPagination
     filter_backends = (filters.SearchFilter,)
     search_fields = ('name',)

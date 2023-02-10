@@ -1,10 +1,9 @@
-from rest_framework import serializers
-from django.core import validators
+from rest_framework import serializers, status
 
 from datetime import datetime as dt
 from re import match
 from titles.models import (
-    Title, Genre, Category, Review, Comment
+    Title, Genre, Category, Review, Comment, GenreTitle
 )
 
 
@@ -45,14 +44,19 @@ class CategorySerializer(serializers.ModelSerializer):
 
 
 class TitleSerializer(serializers.ModelSerializer):
-    genre = GenreSerializer(
-        read_only=True,
+    genre = serializers.SlugRelatedField(
+        slug_field="slug",
+        queryset=Genre.objects.all(),
         many=True
     )
-    category = CategorySerializer(read_only=True)
+    category = serializers.SlugRelatedField(
+        slug_field="slug",
+        queryset=Category.objects.all()
+    )
+
 
     class Meta:
-        fields = '__all__'
+        fields = ('id', 'name', 'year', 'description', 'genre', 'category',)
         model = Title
 
     def validate_year(self, value):
@@ -61,6 +65,33 @@ class TitleSerializer(serializers.ModelSerializer):
                 'Год выпуска не может быть больше текущего!'
             )
         return value
+
+    def create(self, validated_data):
+        if ('category' not in validated_data
+                or 'genre' not in validated_data):
+            raise serializers.ValidationError(
+                'Required fields missed',
+                code=status.HTTP_400_BAD_REQUEST
+            )
+        else:
+            genres = validated_data.pop('genre')
+            title = Title.objects.create(**validated_data)
+            for genre in genres:
+                GenreTitle.objects.get_or_create(
+                    genre=genre, title=title
+                )
+            return title
+
+    def update(self, instance, validated_data):
+        genres = validated_data.pop('genre')
+        instance.name = validated_data.get('name', instance.name)
+        instance.year = validated_data.get('year', instance.year)
+        instance.description = validated_data.get('description', instance.description)
+        instance.category = validated_data.get('category', instance.category)
+        GenreTitle.objects.filter(title=instance).delete()
+        for genre in genres:
+            GenreTitle.objects.create(title=instance, genre=genre)
+        return instance
 
 
 class CommentSerializer(serializers.ModelSerializer):

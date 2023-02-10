@@ -41,7 +41,7 @@ class IsAdministratorOrReadOnly(permissions.BasePermission):
         if not request.user.is_anonymous:
             return request.user.role == 'admin'
         else:
-            return False
+            return True
 
 
 class IsSuperUserOrReadOnly(permissions.BasePermission):
