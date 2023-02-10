@@ -45,15 +45,8 @@ class CategorySerializer(serializers.ModelSerializer):
 
 
 class TitleSerializer(serializers.ModelSerializer):
-    genre = serializers.SlugRelatedField(
-        slug_field="slug",
-        queryset=Genre.objects.all(),
-        many=True
-    )
-    category = serializers.SlugRelatedField(
-        slug_field="slug",
-        queryset=Category.objects.all()
-    )
+    genre = GenreSerializer(many=True, read_only=True)
+    category = CategorySerializer(read_only=True)
     rating = serializers.SerializerMethodField()
 
     class Meta:
@@ -85,7 +78,6 @@ class TitleSerializer(serializers.ModelSerializer):
                 code=status.HTTP_400_BAD_REQUEST
             )
         else:
-            print(6666666666)
             genres = validated_data.pop('genre')
             title = Title.objects.create(**validated_data)
             for genre in genres:

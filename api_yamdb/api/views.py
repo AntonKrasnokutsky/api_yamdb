@@ -29,26 +29,30 @@ class TittleViewSet(viewsets.ModelViewSet):
         instance = Title.objects.get(id=self.kwargs.get('id'))
         serializer = self.get_serializer(instance)
         return Response(serializer.data)
-    """
+
     def create(self, request, *args, **kwargs):
         data = dict(request.data)
-        
+        if 'genre' not in data or 'category' not in data:
+            return Response(status=status.HTTP_400_BAD_REQUEST)
+        if isinstance(data['category'], list):
+            category_slug = data['category'][0]
+        else:
+            category_slug = data['category']
         data['genre'] = GenreSerializer(
             Genre.objects.filter(slug__in=data['genre']), many=True
         ).data
         data['category'] = CategorySerializer(
-            Category.objects.filter(slug__in=data['category'])[0]
+            Category.objects.get(slug=category_slug)
         ).data
-        
-        serializer = self.get_serializer(data=request.data)
+        serializer = self.get_serializer(data=data)
         print(11111111111)
+        print(serializer)
         serializer.is_valid(raise_exception=True)
         print(2222222222222)
         self.perform_create(serializer)
         print(serializer.data)
         headers = self.get_success_headers(serializer.data)
         return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
-    """
 
     def perform_create(self, serializer):
         data = dict(self.request.data)
@@ -57,7 +61,10 @@ class TittleViewSet(viewsets.ModelViewSet):
         try:
             print(4444444)
             print(data['category'])
-            category_slug = data['category'][0] if isinstance(data['category'], list) else data['category']
+            if isinstance(data['category'], list):
+                category_slug = data['category'][0]
+            else:
+                category_slug = data['category']
             serializer.save(
                 genre=Genre.objects.filter(slug__in=data['genre']),
                 category=Category.objects.get(slug=category_slug)
@@ -71,11 +78,16 @@ class TittleViewSet(viewsets.ModelViewSet):
         if 'category' not in data or 'genre' not in data:
             return Response(status=status.HTTP_400_BAD_REQUEST)
         try:
+            if isinstance(data['category'], list):
+                category_slug = data['category'][0]
+            else:
+                category_slug = data['category']
             serializer.save(
                 genre=Genre.objects.filter(slug__in=data['genre']),
-                category=Category.objects.get(slug=data['category'])
+                category=Category.objects.get(slug=category_slug)
             )
         except ObjectDoesNotExist:
+            print(666666)
             return Response(status=status.HTTP_404_NOT_FOUND)
 
 
