@@ -74,8 +74,6 @@ class Test04TitleAPI:
             '201.'
         )
         title_count += 1
-        print(22222222)
-        print(response.json())
         assert isinstance(response.json().get('id'), int), (
             f'Проверьте, при POST-запросе администратора к `{url}` '
             'в ответе возвращаются данные созданного объекта. Сейчас поле '
@@ -193,8 +191,6 @@ class Test04TitleAPI:
             '`/api/v1/titles/{title_id}/` возвращает ответ со статусом 200.'
         )
         data = response.json()
-        print('1111111111')
-        print(data)
         assert isinstance(data.get('id'), int), (
             'Поле `id` отсутствует или содержит некорректное значение '
             'в ответе на GET-запрос неавторизованного пользователя к '

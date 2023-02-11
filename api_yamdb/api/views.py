@@ -8,7 +8,7 @@ from django.core.exceptions import ObjectDoesNotExist
 from titles.models import Title, Genre, Category, Review, GenreTitle
 from .serializers import (
     TitleSerializer, GenreSerializer, CategorySerializer,
-    ReviewSerializer,
+    ReviewSerializer, TitleReadSerializer
 )
 from .permissions import (
     IsUserOrReadOnly, IsModeratorOrReadOnly,
