@@ -1,5 +1,6 @@
 from rest_framework import serializers, status
 from django.db.models import Avg
+from django.core.exceptions import ObjectDoesNotExist
 
 from datetime import datetime as dt
 from re import match
@@ -44,9 +45,36 @@ class CategorySerializer(serializers.ModelSerializer):
         return value
 
 
+class TitleGenreSerializer(GenreSerializer):
+
+    def to_internal_value(self, data):
+        try:
+            return GenreSerializer(Genre.objects.get(slug=data)).data
+        except ObjectDoesNotExist:
+            raise serializers.ValidationError(
+                'Жанр со slug "{data}" отсутствует',
+                code=status.HTTP_400_BAD_REQUEST
+            )
+
+
+class TitleCategorySerializer(CategorySerializer):
+    def to_internal_value(self, data):
+        try:
+            return CategorySerializer(
+                Category.objects.get(
+                    slug=data[0] if isinstance(data,list) else data
+                )
+            ).data
+        except ObjectDoesNotExist:
+            raise serializers.ValidationError(
+                f'Категория со slug "{data}" отсутствует',
+                code=status.HTTP_400_BAD_REQUEST
+            )
+
+
 class TitleSerializer(serializers.ModelSerializer):
-    genre = GenreSerializer(many=True, read_only=True)
-    category = CategorySerializer(read_only=True)
+    genre = TitleGenreSerializer(many=True)
+    category = TitleCategorySerializer()
     rating = serializers.SerializerMethodField()
 
     class Meta:
@@ -71,30 +99,36 @@ class TitleSerializer(serializers.ModelSerializer):
         return rating
 
     def create(self, validated_data):
-        if ('category' not in validated_data
-                or 'genre' not in validated_data):
+        if ('category' not in self.initial_data
+                or 'genre' not in self.initial_data):
             raise serializers.ValidationError(
                 'Required fields missed',
                 code=status.HTTP_400_BAD_REQUEST
             )
-        else:
-            genres = validated_data.pop('genre')
-            title = Title.objects.create(**validated_data)
-            for genre in genres:
-                GenreTitle.objects.get_or_create(
-                    genre=genre, title=title
-                )
-            return title
+        genres = validated_data.pop('genre')
+        validated_data['category'] = Category.objects.get(
+            slug=validated_data['category']['slug']
+        )
+        title = Title.objects.create(**validated_data)
+        for genre in genres:
+            GenreTitle.objects.get_or_create(
+                genre=Genre.objects.get(slug=genre['slug']),
+                title=title
+            )
+        return title
 
     def update(self, instance, validated_data):
         genres = validated_data.pop('genre')
         instance.name = validated_data.get('name', instance.name)
         instance.year = validated_data.get('year', instance.year)
         instance.description = validated_data.get('description', instance.description)
-        instance.category = validated_data.get('category', instance.category)
+        instance.category = Category.objects.get(slug=validated_data['category']['slug'])
         GenreTitle.objects.filter(title=instance).delete()
         for genre in genres:
-            GenreTitle.objects.create(title=instance, genre=genre)
+            GenreTitle.objects.create(
+                title=instance,
+                genre=Genre.objects.get(slug=genre['slug'])
+            )
         instance.save()
         return instance
 
