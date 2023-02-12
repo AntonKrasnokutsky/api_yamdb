@@ -1,13 +1,16 @@
 from rest_framework import (
     viewsets, filters, status, mixins
 )
-from django_filters.rest_framework import DjangoFilterBackend
+from django_filters.rest_framework import (
+    DjangoFilterBackend, FilterSet,
+    CharFilter, NumberFilter
+)
 from rest_framework.response import Response
 from rest_framework.pagination import LimitOffsetPagination
-from titles.models import Title, Genre, Category, Review
+from titles.models import Title, Genre, Category, Review, GenreTitle
 from .serializers import (
-    TitleSerializer, GenreSerializer, CategorySerializer,
-    ReviewSerializer,
+    WriteTitleSerializer, GenreSerializer, CategorySerializer,
+    ReviewSerializer, ReadTitleSerializer
 )
 from .permissions import (
     IsUserOrReadOnly, IsModeratorOrReadOnly,
@@ -15,14 +18,30 @@ from .permissions import (
 )
 
 
+class TitleFilter(FilterSet):
+    category = CharFilter(field_name='category__slug', lookup_expr='icontains')
+    genre = CharFilter(field_name='genre__slug', lookup_expr='icontains')
+    name = CharFilter(field_name='name', lookup_expr='icontains')
+    year = NumberFilter(field_name='year', lookup_expr='iexact')
+
+    class Meta:
+        model = Title
+        fields = ['category', 'genre', 'name', 'year']
+
+
 class TittleViewSet(viewsets.ModelViewSet):
     queryset = Title.objects.all()
-    serializer_class = TitleSerializer
-    permission_classes = [IsAdministratorOrReadOnly,]
+    serializer_class = ReadTitleSerializer
+    permission_classes = [IsAdministratorOrReadOnly, ]
     pagination_class = LimitOffsetPagination
     lookup_field = 'id'
     filter_backends = (DjangoFilterBackend,)
-    filterset_fields = ('category__slug', 'genre__slug', 'name', 'year')
+    filterset_class = TitleFilter
+
+    def get_serializer_class(self):
+        if self.action in ['list', 'retrieve']:
+            return self.serializer_class
+        return WriteTitleSerializer
 
     def retrieve(self, request, *args, **kwargs):
         instance = Title.objects.get(id=self.kwargs.get('id'))
@@ -34,7 +53,7 @@ class GenreViewSet(mixins.ListModelMixin, mixins.CreateModelMixin,
                    mixins.DestroyModelMixin, viewsets.GenericViewSet):
     queryset = Genre.objects.all()
     serializer_class = GenreSerializer
-    permission_classes = [IsAdministratorOrReadOnly,]
+    permission_classes = [IsAdministratorOrReadOnly, ]
     pagination_class = LimitOffsetPagination
     filter_backends = (filters.SearchFilter,)
     search_fields = ('name',)
