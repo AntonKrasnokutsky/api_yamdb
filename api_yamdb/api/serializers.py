@@ -1,5 +1,4 @@
 from rest_framework import serializers
-from django.core import validators
 
 from datetime import datetime as dt
 from re import match
