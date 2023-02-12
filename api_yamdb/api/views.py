@@ -1,3 +1,4 @@
+from django.shortcuts import get_object_or_404
 from rest_framework import (
     viewsets, filters, status, mixins
 )
@@ -7,15 +8,16 @@ from django_filters.rest_framework import (
 )
 from rest_framework.response import Response
 from rest_framework.pagination import LimitOffsetPagination
-from titles.models import Title, Genre, Category, Review, GenreTitle
+from titles.models import Title, Genre, Category, Review, Comment
 from .serializers import (
     WriteTitleSerializer, GenreSerializer, CategorySerializer,
-    ReviewSerializer, ReadTitleSerializer
+    ReviewSerializer, ReadTitleSerializer, CommentSerializer,
 )
 from .permissions import (
-    IsUserOrReadOnly, IsModeratorOrReadOnly,
-    IsAdministratorOrReadOnly, IsSuperUserOrReadOnly
+    IsAdministratorOrReadOnly,
 )
+
+from users.permissions import AuthorOrReviewerOrReadOnly
 
 
 class TitleFilter(FilterSet):
@@ -82,22 +84,32 @@ class CategoryViewSet(mixins.ListModelMixin, mixins.CreateModelMixin,
 class ReviewViewSet(viewsets.ModelViewSet):
     serializer_class = ReviewSerializer
     permission_classes = (
-        IsUserOrReadOnly, IsModeratorOrReadOnly,
-        IsAdministratorOrReadOnly, IsSuperUserOrReadOnly
+        AuthorOrReviewerOrReadOnly,
     )
 
     def get_queryset(self):
         title_id = self.kwargs.get("title_id")
         return Review.objects.filter(title=title_id)
 
-    # def get_permissions(self):
-    #     if self.action == 'retrieve':
-    #         return (только_чтение(),)
-    #     return super().get_permissions()
+    def perform_create(self, serializer):
+        if not serializer.is_valid():
+            return super().permission_denied(self.request)
+        title = get_object_or_404(Title, pk=self.kwargs.get("title_id"))
+        serializer.save(author=self.request.user, title=title)
+
+
+class CommentViewSet(viewsets.ModelViewSet):
+    serializer_class = CommentSerializer
+    permission_classes = (
+        AuthorOrReviewerOrReadOnly,
+    )
+
+    def get_queryset(self):
+        title_id = self.kwargs.get("review_id")
+        return Review.objects.filter(title=title_id)
 
     def perform_create(self, serializer):
         if not serializer.is_valid():
             return super().permission_denied(self.request)
-        title = Title.objects.get(pk=self.kwargs.get("title_id"))
-        serializer.save(author=self.request.user, title=title)
-
+        review = get_object_or_404(Review, pk=self.kwargs.get("review_id"))
+        serializer.save(author=self.request.user, review=review)

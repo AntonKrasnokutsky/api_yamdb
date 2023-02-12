@@ -127,13 +127,11 @@ class CommentSerializer(serializers.ModelSerializer):
     class Meta:
         fields = ('id', 'text', 'author', 'pub_date')
         model = Comment
-        read_only_fields = ('author', )
 
 
 class ReviewSerializer(serializers.ModelSerializer):
     author = serializers.StringRelatedField(read_only=True)
-    # comments = CommentSerializer(read_only=True, many=True, required=False)
 
     class Meta:
         model = Review
-        fields = ('id', 'text', 'author', 'score', 'pub_date',) # comments
+        fields = ('id', 'text', 'author', 'score', 'pub_date',)
