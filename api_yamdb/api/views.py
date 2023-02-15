@@ -8,6 +8,8 @@ from django_filters.rest_framework import (
 )
 from rest_framework.response import Response
 from rest_framework.pagination import LimitOffsetPagination
+
+from .exceptions import DubleReview
 from titles.models import Title, Genre, Category, Review, Comment
 from .serializers import (
     WriteTitleSerializer, GenreSerializer, CategorySerializer,

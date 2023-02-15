@@ -3,6 +3,8 @@ from rest_framework import serializers, status
 from django.db.models import Avg
 from datetime import datetime as dt
 from re import match
+
+from .exceptions import DubleReview
 from titles.models import (
     Title, Genre, Category, Review, Comment, GenreTitle
 )
@@ -137,10 +139,10 @@ class ReviewSerializer(serializers.ModelSerializer):
         model = Review
         fields = ('id', 'text', 'author', 'score', 'pub_date',)
 
-    def validate_author(self, data):
+    def validate_text(self, data):
         author = self.context['request'].user
-        title = get_object_or_404(Title, pk=self.kwargs['title_id'])
+        title = get_object_or_404(Title, pk=self.kwargs.get['title_id'])
         review = title.review.filter(author=author).exists()
         if review:
-            raise serializers.ValidationError('Вы уже оставили отзыв к этому произведению', status_code=status.HTTP_400_BAD_REQUEST)
+            return DubleReview(status=status.HTTP_400_BAD_REQUEST)
         return data
