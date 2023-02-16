@@ -93,11 +93,22 @@ class ReviewViewSet(viewsets.ModelViewSet):
         title_id = self.kwargs.get("title_id")
         return Review.objects.filter(title=title_id)
 
-    def perform_create(self, serializer):
-        if not serializer.is_valid():
-            return super().permission_denied(self.request)
-        title = get_object_or_404(Title, pk=self.kwargs.get("title_id"))
+    def create(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        title = get_object_or_404(Title, pk=kwargs.get("title_id"))
+        review = title.review.filter(author=request.user).exists()
+        if review:
+            return Response("Вы уже добавили обзор на это произведение", status=status.HTTP_400_BAD_REQUEST)
         serializer.save(author=self.request.user, title=title)
+        headers = self.get_success_headers(serializer.data)
+        return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
+
+    # def perform_create(self, serializer):
+    #     if not serializer.is_valid():
+    #         return super().permission_denied(self.request)
+    #     title = get_object_or_404(Title, pk=self.kwargs.get("title_id"))
+    #     serializer.save(author=self.request.user, title=title)
 
 
 class CommentViewSet(viewsets.ModelViewSet):

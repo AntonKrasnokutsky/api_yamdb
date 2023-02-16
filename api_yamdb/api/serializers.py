@@ -138,11 +138,3 @@ class ReviewSerializer(serializers.ModelSerializer):
     class Meta:
         model = Review
         fields = ('id', 'text', 'author', 'score', 'pub_date',)
-
-    def validate_text(self, data):
-        author = self.context['request'].user
-        title = get_object_or_404(Title, pk=self.kwargs.get['title_id'])
-        review = title.review.filter(author=author).exists()
-        if review:
-            return DubleReview(status=status.HTTP_400_BAD_REQUEST)
-        return data
