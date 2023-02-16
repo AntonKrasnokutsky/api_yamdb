@@ -1,5 +1,9 @@
+from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
-from users.models import User
+
+from django.contrib.auth import get_user_model
+
+User = get_user_model()
 
 
 class Category(models.Model):
@@ -86,11 +90,13 @@ class Review(models.Model):
     title = models.ForeignKey(
         'Title',
         on_delete=models.CASCADE,
-        related_name='review',
+        related_name='reviews',
         verbose_name='Произведение',
     )
     text = models.TextField(verbose_name='Обзор')
-    score = models.IntegerField(verbose_name='Оценка')
+    score = models.IntegerField(
+        validators=[MinValueValidator(1), MaxValueValidator(10)],
+        verbose_name='Оценка')
     pub_date = models.DateTimeField(
         verbose_name='Дата публикации',
         auto_now_add=True,
@@ -98,7 +104,7 @@ class Review(models.Model):
     author = models.ForeignKey(
         User,
         on_delete=models.CASCADE,
-        related_name='review',
+        related_name='reviews',
         verbose_name='Автор отзыва',
     )
 
@@ -107,7 +113,7 @@ class Review(models.Model):
         verbose_name = 'Обзор'
         verbose_name_plural = 'Обзоры'
         # constraints = [
-        #     models.UniqueConstraint(fields=['title', 'author'], name='unique review')
+        #     models.UniqueConstraint(fields=['author', 'title'], name='unique_review')
         # ]
 
 
@@ -122,7 +128,7 @@ class Comment(models.Model):
     review = models.ForeignKey(
         'Review',
         on_delete=models.CASCADE,
-        related_name='comment',
+        related_name='comments',
         verbose_name='Обзор',
     )
     pub_date = models.DateTimeField(

@@ -124,17 +124,27 @@ class ReadTitleSerializer(serializers.ModelSerializer):
         return rating
 
 
-class CommentSerializer(serializers.ModelSerializer):
-    author = serializers.StringRelatedField(read_only=True)
-
-    class Meta:
-        fields = ('id', 'text', 'author', 'pub_date')
-        model = Comment
-
-
 class ReviewSerializer(serializers.ModelSerializer):
     author = serializers.StringRelatedField(read_only=True)
 
     class Meta:
         model = Review
         fields = ('id', 'text', 'author', 'score', 'pub_date',)
+    
+    def validate(self, data):
+        if self.context['request'].method != 'POST':
+            return super().validate(data)
+        title = get_object_or_404(Title, pk=self.context['view'].kwargs.get('title_id'))
+        review = title.reviews.filter(title=title, author=self.context['request'].user).exists()
+        if review:
+            raise serializers.ValidationError('Можно оставить только один отзыв')
+        return super().validate(data)
+        
+
+
+class CommentSerializer(serializers.ModelSerializer):
+    author = serializers.StringRelatedField(read_only=True)
+    
+    class Meta:
+        fields = ('id', 'text', 'author', 'pub_date')
+        model = Comment
