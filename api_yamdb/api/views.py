@@ -9,8 +9,7 @@ from django_filters.rest_framework import (
 from rest_framework.response import Response
 from rest_framework.pagination import LimitOffsetPagination
 
-from .exceptions import DubleReview
-from reviews.models import Title, Genre, Category, Review, Comment
+from reviews.models import Title, Genre, Category, Review
 from .serializers import (
     WriteTitleSerializer, GenreSerializer, CategorySerializer,
     ReviewSerializer, ReadTitleSerializer, CommentSerializer,
@@ -93,22 +92,8 @@ class ReviewViewSet(viewsets.ModelViewSet):
         title_id = self.kwargs.get("title_id")
         return Review.objects.filter(title=title_id)
 
-    # def create(self, request, *args, **kwargs):
-    #     serializer = self.get_serializer(data=request.data)
-    #     serializer.is_valid(raise_exception=True)
-    #     title = get_object_or_404(Title, pk=kwargs.get("title_id"))
-    #     review = Review.objects.filter(title=title, author=request.user).exists()
-    #     if review:
-    #         return Response("Вы уже добавили обзор на это произведение", status=status.HTTP_400_BAD_REQUEST)
-    #     serializer.save(author=self.request.user, title=title)
-    #     headers = self.get_success_headers(serializer.data)
-    #     return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
-
     def perform_create(self, serializer):
         title = get_object_or_404(Title, pk=self.kwargs.get("title_id"))
-        # review = Review.objects.get(title=title, author=self.request.user)
-        # if review:
-        #     return Response("Вы уже добавили обзор на это произведение", status=status.HTTP_400_BAD_REQUEST)
         serializer.save(author=self.request.user, title=title)
 
 

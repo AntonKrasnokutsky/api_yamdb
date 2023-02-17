@@ -22,7 +22,8 @@ class IsUserOrReadOnly(permissions.BasePermission):
 
 class IsModeratorOrReadOnly(permissions.BasePermission):
     """
-    Права аутентифицированного пользователя плюс право удалять любые отзывы и комментарии.
+    Права аутентифицированного пользователя,
+    плюс право удалять любые отзывы и комментарии.
     """
     def has_permission(self, request, view):
         if request.method in SAFE_METHODS:
@@ -51,4 +52,3 @@ class IsSuperUserOrReadOnly(permissions.BasePermission):
             return True
         if not request.user.is_anonymous:
             return request.user.is_superuser
-
