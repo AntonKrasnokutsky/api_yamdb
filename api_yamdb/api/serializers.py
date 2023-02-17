@@ -5,7 +5,7 @@ from datetime import datetime as dt
 from re import match
 
 from .exceptions import DubleReview
-from titles.models import (
+from reviews.models import (
     Title, Genre, Category, Review, Comment, GenreTitle
 )
 

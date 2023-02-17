@@ -112,9 +112,9 @@ class Review(models.Model):
         ordering = ['title', ]
         verbose_name = 'Обзор'
         verbose_name_plural = 'Обзоры'
-        # constraints = [
-        #     models.UniqueConstraint(fields=['author', 'title'], name='unique_review')
-        # ]
+        constraints = [
+            models.UniqueConstraint(fields=['author', 'title'], name='unique_review')
+        ]
 
 
 class Comment(models.Model):

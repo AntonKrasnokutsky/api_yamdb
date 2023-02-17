@@ -10,7 +10,7 @@ from rest_framework.response import Response
 from rest_framework.pagination import LimitOffsetPagination
 
 from .exceptions import DubleReview
-from titles.models import Title, Genre, Category, Review, Comment
+from reviews.models import Title, Genre, Category, Review, Comment
 from .serializers import (
     WriteTitleSerializer, GenreSerializer, CategorySerializer,
     ReviewSerializer, ReadTitleSerializer, CommentSerializer,
