@@ -95,8 +95,12 @@ class Review(models.Model):
     )
     text = models.TextField(verbose_name='Обзор')
     score = models.IntegerField(
-        validators=[MinValueValidator(1), MaxValueValidator(10)],
-        verbose_name='Оценка')
+        validators=[
+            MinValueValidator(1, message='Значение должно быть от 1 до 10'),
+            MaxValueValidator(10, message='Значение должно быть от 1 до 10')
+        ],
+        verbose_name='Оценка'
+    )
     pub_date = models.DateTimeField(
         verbose_name='Дата публикации',
         auto_now_add=True,
