@@ -1,8 +1,8 @@
+from re import match
+
 from django.shortcuts import get_object_or_404
 from rest_framework import serializers, status
-from django.db.models import Avg
 from datetime import datetime as dt
-from re import match
 
 from reviews.models import (
     Title, Genre, Category, Review, Comment, GenreTitle
@@ -16,7 +16,7 @@ class GenreSerializer(serializers.ModelSerializer):
         fields = ('name', 'slug',)
 
     def validate_slug(self, value):
-        if match(r'^[-a-zA-Z0-9_]+$', value) is None:
+        if match(r'\w', value) is None:
             raise serializers.ValidationError(
                 'Slug format error'
             )
@@ -34,7 +34,7 @@ class CategorySerializer(serializers.ModelSerializer):
         fields = ('name', 'slug',)
 
     def validate_slug(self, value):
-        if match(r'^[-a-zA-Z0-9_]+$', value) is None:
+        if match(r'\w', value) is None:
             raise serializers.ValidationError(
                 'Slug format error'
             )
@@ -57,8 +57,10 @@ class WriteTitleSerializer(serializers.ModelSerializer):
     )
 
     class Meta:
-        fields = ('id', 'name', 'year', 'description',
-                  'genre', 'category')
+        fields = (
+            'id', 'name', 'year',
+            'description', 'genre', 'category'
+        )
         model = Title
 
     def validate_year(self, value):
@@ -69,8 +71,10 @@ class WriteTitleSerializer(serializers.ModelSerializer):
         return value
 
     def create(self, validated_data):
-        if ('category' not in self.initial_data
-                or 'genre' not in self.initial_data):
+        if (
+                'category' not in self.initial_data
+                or 'genre' not in self.initial_data
+        ):
             raise serializers.ValidationError(
                 'Required fields missed',
                 code=status.HTTP_400_BAD_REQUEST
@@ -84,46 +88,18 @@ class WriteTitleSerializer(serializers.ModelSerializer):
             )
         return title
 
-    def update(self, instance, validated_data):
-        instance.name = validated_data.get('name', instance.name)
-        instance.year = validated_data.get('year', instance.year)
-        instance.description = validated_data.get(
-            'description',
-            instance.description
-        )
-        instance.category = validated_data.get('category', instance.category)
-        if 'genre' not in self.initial_data:
-            instance.save()
-            return instance
-        genres = validated_data.get('genre', instance.genre)
-        GenreTitle.objects.filter(title=instance).delete()
-        for genre in genres:
-            GenreTitle.objects.create(
-                title=instance,
-                genre=genre
-            )
-        instance.save()
-        return instance
-
 
 class ReadTitleSerializer(serializers.ModelSerializer):
     genre = CategorySerializer(many=True, read_only=True)
     category = CategorySerializer(read_only=True)
-    rating = serializers.SerializerMethodField()
+    rating = serializers.FloatField(read_only=True)
 
     class Meta:
-        fields = ('id', 'name', 'year', 'description',
-                  'genre', 'category', 'rating')
+        fields = (
+            'id', 'name', 'year', 'description',
+            'genre', 'category', 'rating'
+        )
         model = Title
-
-    def get_rating(self, obj):
-        try:
-            rating = Review.objects.filter(title=obj).aggregate(
-                Avg('score')
-            )['score__avg']
-        except TypeError:
-            rating = None
-        return rating
 
 
 class ReviewSerializer(serializers.ModelSerializer):

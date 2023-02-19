@@ -3,13 +3,14 @@ from rest_framework import (
     viewsets, filters, status, mixins
 )
 from django_filters.rest_framework import (
-    DjangoFilterBackend, FilterSet,
-    CharFilter, NumberFilter
+    DjangoFilterBackend
 )
+from django.db.models import Avg
 from rest_framework.response import Response
 from rest_framework.pagination import LimitOffsetPagination
 
 from reviews.models import Title, Genre, Category, Review
+from .filters import TitleFilter
 from .serializers import (
     WriteTitleSerializer, GenreSerializer, CategorySerializer,
     ReviewSerializer, ReadTitleSerializer, CommentSerializer,
@@ -21,19 +22,8 @@ from .permissions import (
 from users.permissions import AuthorOrReviewerOrReadOnly
 
 
-class TitleFilter(FilterSet):
-    category = CharFilter(field_name='category__slug', lookup_expr='icontains')
-    genre = CharFilter(field_name='genre__slug', lookup_expr='icontains')
-    name = CharFilter(field_name='name', lookup_expr='icontains')
-    year = NumberFilter(field_name='year', lookup_expr='iexact')
-
-    class Meta:
-        model = Title
-        fields = ['category', 'genre', 'name', 'year']
-
-
 class TittleViewSet(viewsets.ModelViewSet):
-    queryset = Title.objects.all()
+    queryset = Title.objects.annotate(rating=Avg('reviews__score'))
     serializer_class = ReadTitleSerializer
     permission_classes = [IsAdministratorOrReadOnly, ]
     pagination_class = LimitOffsetPagination
@@ -47,7 +37,7 @@ class TittleViewSet(viewsets.ModelViewSet):
         return WriteTitleSerializer
 
     def retrieve(self, request, *args, **kwargs):
-        instance = Title.objects.get(id=self.kwargs.get('id'))
+        instance = self.queryset.get(id=self.kwargs.get('id'))
         serializer = self.get_serializer(instance)
         return Response(serializer.data)
 

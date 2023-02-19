@@ -1,6 +1,8 @@
 from csv import DictReader
+
 from django.core.management import BaseCommand, CommandError
 from django.db.models.base import ModelBase
+
 from reviews.models import (
     Title, Category, Genre,
     GenreTitle, Comment, Review
@@ -22,22 +24,15 @@ TABLES_DICT = {
 class Command(BaseCommand):
     help = 'Load data from csv files'
 
-    @staticmethod
-    def get_row_by_model(cur_model: ModelBase, row: dict):
+    def get_row_by_model(self, cur_model: ModelBase, row: dict):
         if cur_model is Title:
-            if 'category' in row.keys():
+            if 'category' in row:
                 row['category'] = Category.objects.get(
                     id=int(row['category'])
                 )
                 return row
-        elif cur_model is Review:
-            if 'author' in row.keys():
-                row['author'] = User.objects.get(
-                    id=int(row['author'])
-                )
-                return row
-        elif cur_model is Comment:
-            if 'author' in row.keys():
+        elif cur_model is Review or cur_model is Comment:
+            if 'author' in row:
                 row['author'] = User.objects.get(
                     id=int(row['author'])
                 )
