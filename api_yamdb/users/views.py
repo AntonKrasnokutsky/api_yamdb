@@ -2,12 +2,13 @@ from django.core.mail import send_mail
 from django.contrib.auth.tokens import default_token_generator
 from django.db import IntegrityError
 from django.shortcuts import get_object_or_404
-from rest_framework import filters, status, viewsets
+from rest_framework import filters, status, viewsets, mixins
 from rest_framework.decorators import action
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework_simplejwt.tokens import RefreshToken
+from api_yamdb.settings import EMAIL_ADDRESS
 
 from .models import User
 from .permissions import IsAdmin
@@ -33,7 +34,7 @@ class SignUpView(APIView):
         send_mail(
             'Your confirmation code here:',
             f'{confirmation_code}',
-            'from@example.com',
+            EMAIL_ADDRESS,
             [serializer.validated_data.get('email')],
             fail_silently=False,
         )
@@ -71,10 +72,13 @@ class UserViewSet(viewsets.ModelViewSet):
     filter_backends = [filters.SearchFilter, ]
     search_fields = ['username', ]
     lookup_field = 'username'
+    http_method_names = ['get', 'post', 'patch', 'delete']
+
+    def _allowed_methods(self):
+        return [m.upper() for m in self.http_method_names if hasattr(self, m)]
 
     def update(self, request, *args, **kwargs):
-        if request.method == 'PUT':
-            return Response(status=status.HTTP_405_METHOD_NOT_ALLOWED)
+        kwargs['partial'] = True
         return super().update(request, *args, **kwargs)
 
     @action(

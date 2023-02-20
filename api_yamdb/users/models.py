@@ -2,11 +2,14 @@ from django.contrib.auth.models import AbstractUser
 from django.db import models
 from django.core import validators
 
+ADMIN = 'admin'
+MODERATOR = 'moderator'
+USER = 'user'
 
 CHOICES = (
-    ('admin', 'Admin'),
-    ('moderator', 'Moderator'),
-    ('user', 'User'),
+    (ADMIN, 'Admin'),
+    (MODERATOR, 'Moderator'),
+    (USER, 'User'),
 )
 
 
@@ -36,7 +39,7 @@ class User(AbstractUser):
     role = models.CharField(
         max_length=9,
         choices=CHOICES,
-        default='user',
+        default=USER,
     )
     bio = models.TextField(
         max_length=500,
@@ -45,11 +48,11 @@ class User(AbstractUser):
 
     @property
     def is_admin(self):
-        return self.is_staff or self.role == 'admin'
+        return self.is_staff or self.role == ADMIN
 
     @property
     def is_moderator(self):
-        return self.role == 'moderator'
+        return self.role == MODERATOR
 
     def __str__(self):
         return self.username
