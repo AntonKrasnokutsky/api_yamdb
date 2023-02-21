@@ -1,3 +1,4 @@
+from django.conf import settings as s
 from django.core.mail import send_mail
 from django.contrib.auth.tokens import default_token_generator
 from django.db import IntegrityError
@@ -9,7 +10,6 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework_simplejwt.tokens import RefreshToken
 
-from api_yamdb.settings import EMAIL_ADDRESS
 from .models import User
 from .permissions import IsAdmin
 from .serializers import TokenSerializer, SignUpSerializer, UserSerializer
@@ -34,7 +34,7 @@ class SignUpView(APIView):
         send_mail(
             'Your confirmation code here:',
             f'{confirmation_code}',
-            EMAIL_ADDRESS,
+            s.EMAIL_ADDRESS,
             [serializer.validated_data.get('email')],
             fail_silently=False,
         )

@@ -12,7 +12,7 @@ class IsUserOrReadOnly(permissions.BasePermission):
         if request.method in SAFE_METHODS:
             return True
         if not request.user.is_anonymous:
-            return request.user.role == 'user'
+            return request.user.is_admin
 
     def has_object_permission(self, request, view, obj):
         if request.method in SAFE_METHODS:
@@ -29,7 +29,7 @@ class IsModeratorOrReadOnly(permissions.BasePermission):
         if request.method in SAFE_METHODS:
             return True
         if not request.user.is_anonymous:
-            return request.user.role == 'moderator'
+            return request.user.is_moderator
 
 
 class IsAdministratorOrReadOnly(permissions.BasePermission):
@@ -40,7 +40,7 @@ class IsAdministratorOrReadOnly(permissions.BasePermission):
         if request.method in SAFE_METHODS:
             return True
         if not request.user.is_anonymous:
-            return request.user.role == 'admin'
+            return request.user.is_admin
 
 
 class IsSuperUserOrReadOnly(permissions.BasePermission):
