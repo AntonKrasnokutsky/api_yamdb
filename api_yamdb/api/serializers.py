@@ -1,5 +1,3 @@
-from re import match
-
 from django.shortcuts import get_object_or_404
 from rest_framework import serializers, status
 from datetime import datetime as dt
@@ -15,34 +13,12 @@ class GenreSerializer(serializers.ModelSerializer):
         model = Genre
         fields = ('name', 'slug',)
 
-    def validate_slug(self, value):
-        if match(r'\w', value) is None:
-            raise serializers.ValidationError(
-                'Slug format error'
-            )
-        if not value:
-            raise serializers.ValidationError(
-                'Slug can not be empty'
-            )
-        return value
-
 
 class CategorySerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Category
         fields = ('name', 'slug',)
-
-    def validate_slug(self, value):
-        if match(r'\w', value) is None:
-            raise serializers.ValidationError(
-                'Slug format error'
-            )
-        if not value:
-            raise serializers.ValidationError(
-                'Slug can not be empty'
-            )
-        return value
 
 
 class WriteTitleSerializer(serializers.ModelSerializer):

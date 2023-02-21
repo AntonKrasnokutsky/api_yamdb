@@ -25,13 +25,13 @@ class Command(BaseCommand):
     help = 'Load data from csv files'
 
     def get_row_by_model(self, cur_model: ModelBase, row: dict):
-        if cur_model is Title:
+        if isinstance(cur_model, Title):
             if 'category' in row:
                 row['category'] = Category.objects.get(
                     id=int(row['category'])
                 )
                 return row
-        elif cur_model is Review or cur_model is Comment:
+        elif isinstance(cur_model, Review) or isinstance(cur_model, Comment):
             if 'author' in row:
                 row['author'] = User.objects.get(
                     id=int(row['author'])
